@@ -4,6 +4,8 @@
 
 Alpine produces a significantly smaller image (~200 MB compressed vs ~400 MB for Debian bookworm-slim). The Alpine `chromium` package is a proper apk — no Snap wrapper, no workarounds needed.
 
+Alpine 3.22 ships Chromium 142.0.7444.59. If you need a newer version, Alpine edge carries 148 at time of writing but is less stable.
+
 ## Why `xhost +local:` instead of `xhost +local:docker`?
 
 `+local:docker` grants X access only to the user named `docker`. The container process runs as your host user (via `--user $(id -u):$(id -g)`), so `+local:` (no name filter) is required to allow any local Unix socket connection regardless of username.
