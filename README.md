@@ -1,12 +1,12 @@
 # UpdatedChromiumAlpine
 
-Runs **Chromium 148.0.7778.178** inside an Alpine Linux 3.22 Docker container with X11 forwarding, so it displays on your host desktop. A `.desktop` launcher starts the container on demand — nothing runs until you click the icon.
+Runs **Chromium 148.0.7778.178** inside an Alpine Linux 3.23 Docker container with X11 forwarding, so it displays on your host desktop. A `.desktop` launcher starts the container on demand — nothing runs until you click the icon.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Builds the Chromium image on Alpine 3.21 |
+| `Dockerfile` | Builds the Chromium image on Alpine 3.23 |
 | `run-chromium-alpine.sh` | Launches the container with X11 forwarding |
 | `chromium.png` | Desktop launcher icon (128×128) |
 
@@ -54,9 +54,12 @@ docker run --rm \
     -e DISPLAY="$DISPLAY" \
     -e HOME=/tmp \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
+    --device=/dev/dri:/dev/dri \
+    --group-add "$(stat -c '%g' /dev/dri/renderD128)" \
+    --group-add "$(stat -c '%g' /dev/dri/card1)" \
     --user "$(id -u):$(id -g)" \
     --shm-size=256m \
-    chromium-alpine
+    chromium-alpine:148.0.7778.178
 ```
 
 ## Chromium flags
@@ -65,4 +68,3 @@ docker run --rm \
 |------|--------|
 | `--no-sandbox` | Required — Linux user namespaces are restricted inside Docker |
 | `--disable-dev-shm-usage` | Docker's `/dev/shm` defaults to 64 MB; without this Chromium crashes on heavy pages |
-| `--disable-gpu` | No GPU passthrough in this setup; avoids GPU-related startup errors |
