@@ -18,6 +18,10 @@ The X server checks the UID of connecting processes. Running the container as yo
 
 When the container runs as your host UID, the default `WORKDIR` (`/home/chromium`) is owned by the Alpine system user and is not writable. Chromium needs a writable home to create its profile directory and crash handler database. `/tmp` is always writable.
 
+## Why mount `/dev/dri`?
+
+Chromium 142 uses ANGLE for GL rendering, which requires access to the host's DRM graphics device. Without `--device=/dev/dri:/dev/dri`, Mesa fails with `Failed to query drm device` and the GPU compositor crashes, leaving a blank white window. The `--group-add` flags pass the host `video` and `render` group IDs so the container process has permission to open the devices.
+
 ## Why `--shm-size=256m`?
 
 Docker's default shared memory (`/dev/shm`) is 64 MB. Chromium uses shared memory for rendering and crashes silently on memory-intensive pages without enough space. 256 MB is a safe minimum.
