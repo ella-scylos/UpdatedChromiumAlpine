@@ -16,4 +16,5 @@ WORKDIR /home/chromium
 ENTRYPOINT ["chromium-browser", \
     "--no-sandbox", \
     "--disable-dev-shm-usage", \
-    "--disable-gpu"]
+    "--disable-gpu", \
+    "--use-gl=swiftshader"]
