@@ -4,7 +4,7 @@
 
 Alpine produces a significantly smaller image (~200 MB compressed vs ~400 MB for Debian bookworm-slim). The Alpine `chromium` package is a proper apk — no Snap wrapper, no workarounds needed.
 
-Alpine 3.22 ships Chromium 142.0.7444.59. If you need a newer version, Alpine edge carries 148 at time of writing but is less stable.
+Alpine 3.23 ships Chromium 148.0.7778.178.
 
 ## Why `xhost +local:` instead of `xhost +local:docker`?
 

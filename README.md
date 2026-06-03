@@ -1,6 +1,6 @@
 # UpdatedChromiumAlpine
 
-Runs **Chromium 142.0.7444.59** inside an Alpine Linux 3.22 Docker container with X11 forwarding, so it displays on your host desktop. A `.desktop` launcher starts the container on demand — nothing runs until you click the icon.
+Runs **Chromium 148.0.7778.178** inside an Alpine Linux 3.22 Docker container with X11 forwarding, so it displays on your host desktop. A `.desktop` launcher starts the container on demand — nothing runs until you click the icon.
 
 ## Files
 
@@ -20,7 +20,7 @@ Runs **Chromium 142.0.7444.59** inside an Alpine Linux 3.22 Docker container wit
 
 **1. Build the image** (done automatically on first launch, or manually):
 ```bash
-docker build -t chromium-alpine:142.0.7444.59 .
+docker build -t chromium-alpine:148.0.7778.178 .
 ```
 
 **2. Create a desktop launcher** — save the following as `~/Desktop/Chromium Alpine Docker.desktop`, then mark it trusted:
