@@ -1,0 +1,149 @@
+#Cleaning up Chromium Alpine image (Chromium version 149, Alpine version 3.23)
+#Last working version with all apps (Version 55)
+#Last working version (Version 57) - just need to change Settings icon now
+services:
+  xorg:
+    image: container-registry.scylos.io/xorg:cc2be22
+    volumes:
+      - x11-shared:/tmp/.X11-unix
+      - /dev:/dev
+      - /sys:/sys
+      - /run/udev:/host/run/udev
+    privileged: true
+    network_mode: none
+    ipc: shareable
+    healthcheck:
+      test: ["CMD", "test", "-e", "/tmp/.X11-unix/X0"]
+      start_period: 2s
+      interval: 4s
+      retries: 3
+    environment:
+      TZ: ${TIME_ZONE}
+
+  audio:
+    image: container-registry.scylos.io/audio:latest
+    volumes:
+      - x11-shared:/tmp/.X11-unix
+      - xdg-shared:/tmp/xdg
+      - /dev:/dev
+      - /sys:/sys
+    privileged: true
+    network_mode: none
+    ipc: shareable
+    environment:
+      TZ: ${TIME_ZONE}
+      XDG_RUNTIME_DIR: /tmp/xdg
+
+  desktop-init:
+    image: container-registry.scylos.io/wm-init:latest
+    volumes:
+      - xfce4-root:/root:Z
+      - /var/lib/scylos:/var/lib/scylos
+    restart: on-failure
+    command: >
+      sh -c "
+        mkdir -p /var/lib/scylos/cache &&
+        if [ ! -f /var/lib/scylos/cache/desktopScylosEventsV1.tar ]; then
+          echo 'Downloading tar file to persistent storage...' &&
+          curl -L -o /var/lib/scylos/cache/desktopScylosEventsV1.tar 'https://cdn.scylos.io/desktopScylosEventsV1.tar' &&
+          echo 'Download complete'
+        else
+          echo 'Using cached tar file from /var/lib/scylos/cache/'
+        fi &&
+        echo 'File size:' &&
+        ls -lh /var/lib/scylos/cache/desktopScylosEventsV1.tar &&
+        echo 'Starting extraction...' &&
+        tar -C / -xf /var/lib/scylos/cache/desktopScylosEventsV1.tar &&
+        echo 'Extraction complete' &&
+        chmod +x /root/add_launcher.sh &&
+        echo 'Writing gear icon for Settings...' &&
+        mkdir -p /root/icons &&
+        echo 'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWI1YjViIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+CiAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMyIvPgogIDxwYXRoIGQ9Ik0xOS40IDE1YTEuNjUgMS42NSAwIDAgMCAuMzMgMS44MmwuMDYuMDZhMiAyIDAgMCAxLTIuODMgMi44M2wtLjA2LS4wNmExLjY1IDEuNjUgMCAwIDAtMS44Mi0uMzMgMS42NSAxLjY1IDAgMCAwLTEgMS41MVYyMWEyIDIgMCAwIDEtNCAwdi0uMDlBMS42NSAxLjY1IDAgMCAwIDkgMTkuNGExLjY1IDEuNjUgMCAwIDAtMS44Mi4zM2wtLjA2LjA2YTIgMiAwIDAgMS0yLjgzLTIuODNsLjA2LS4wNkExLjY1IDEuNjUgMCAwIDAgNC42OCAxNWExLjY1IDEuNjUgMCAwIDAtMS41MS0xSDNhMiAyIDAgMCAxIDAtNGguMDlBMS42NSAxLjY1IDAgMCAwIDQuNiA5YTEuNjUgMS42NSAwIDAgMC0uMzMtMS44MmwtLjA2LS4wNmEyIDIgMCAwIDEgMi44My0yLjgzbC4wNi4wNkExLjY1IDEuNjUgMCAwIDAgOSA0LjY4YTEuNjUgMS42NSAwIDAgMCAxLTEuNTFWM2EyIDIgMCAwIDEgNCAwdi4wOWExLjY1IDEuNjUgMCAwIDAgMSAxLjUxIDEuNjUgMS42NSAwIDAgMCAxLjgyLS4zM2wuMDYtLjA2YTIgMiAwIDAgMSAyLjgzIDIuODNsLS4wNi4wNkExLjY1IDEuNjUgMCAwIDAgMTkuNCA5YTEuNjUgMS42NSAwIDAgMCAxLjUxIDFIMjFhMiAyIDAgMCAxIDAgNGgtLjA5YTEuNjUgMS42NSAwIDAgMC0xLjUxIDF6Ii8+Cjwvc3ZnPgo=' | base64 -d > /root/icons/settings.svg &&
+        echo 'Gear icon written' &&
+        echo 'adding apps.json' &&
+        mkdir -p /var/lib/scylos/launcher/ &&
+        echo '{
+          \"settings\":  \"docker run -d --rm --ipc=container:${service:xorg} -v /dev:/dev -v /sys:/sys -e DISPLAY=:0 -v ${volume:x11-shared}:/tmp/.X11-unix -v ${volume:xdg-shared}:/tmp/xdg -e XDG_RUNTIME_DIR=/tmp/xdg public.ecr.aws/f6g8w9e4/chromium:alpine-149.0.7827.53 /usr/bin/chromium-browser --no-sandbox --test-type --disable-gpu --use-gl=egl --window-size=1440,900 --app=http://host/\",
+          \"chromium\": \"docker run -d --rm --ipc=container:${service:xorg} -v /dev:/dev -v /sys:/sys -e DISPLAY=:0 -v ${volume:x11-shared}:/tmp/.X11-unix -v ${volume:xdg-shared}:/tmp/xdg -e XDG_RUNTIME_DIR=/tmp/xdg public.ecr.aws/f6g8w9e4/chromium:alpine-149.0.7827.53 /usr/bin/chromium-browser --no-sandbox --test-type --no-first-run --disable-sync --disable-gpu --use-gl=egl https://www.google.com\"
+        }' > /var/lib/scylos/launcher/apps.json &&
+        echo 'adding env.json' &&
+        echo '{\"TZ\":\"${TIME_ZONE}\"}' > /var/lib/scylos/launcher/env.json &&
+        ls -la /var/lib/scylos/launcher/ &&
+        echo 'Adding launchers to desktop...' &&
+        /root/add_launcher.sh \"Settings\" \"settings\" \"/root/icons/settings.svg\" &&
+        /root/add_launcher.sh \"Chromium\" \"chromium\" \"/root/icons/chromium.png\" &&
+        chmod +x /root/Desktop/*.desktop &&
+        echo 'Done!'
+      "
+
+  wm:
+    image: container-registry.scylos.io/xfce4:latest
+    volumes:
+      - x11-shared:/tmp/.X11-unix
+      - xdg-shared:/tmp/xdg
+      - xfce4-root:/root
+      - /dev:/dev
+      - /sys:/sys
+    depends_on:
+      xorg:
+        condition: service_healthy
+      desktop-init:
+        condition: service_completed_successfully
+    privileged: true
+    ipc: "service:xorg"
+    restart: on-failure
+    environment:
+      TZ: ${TIME_ZONE}
+      XDG_RUNTIME_DIR: /tmp/xdg
+
+  launcher:
+    image: container-registry.scylos.io/launcher-basic:latest
+    init: true
+    ports:
+      - 5001:5001
+    volumes:
+      - x11-shared:/tmp/.X11-unix
+      - xdg-shared:/tmp/xdg
+      - /var/lib/scylos:/var/lib/scylos
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      xorg:
+        condition: service_healthy
+    ipc: "service:xorg"
+    restart: on-failure
+    environment:
+      TZ: ${TIME_ZONE}
+      XDG_RUNTIME_DIR: /tmp/xdg
+
+  settings:
+    image: container-registry.scylos.io/settings-ui:d1de1c0
+    restart: always
+    privileged: true
+    ports:
+      - 80:80
+    volumes:
+      - /var/lib/scylos:/var/lib/scylos
+      - /usr/bin/apiclient:/usr/bin/apiclient
+      - /run/api.sock:/run/api.sock
+
+  x11vnc:
+    image: container-registry.scylos.io/x11vnc:latest
+    volumes:
+      - x11-shared:/tmp/.X11-unix
+    ports:
+      - 5900:5900
+    depends_on:
+      xorg:
+        condition: service_healthy
+    ipc: "service:xorg"
+    restart: on-failure
+
+volumes:
+  x11-shared:
+  xdg-shared:
+  xfce4-root:
+  chromium-1:
+  chromium-2:
+  chromium-3:
+  chromium-4:
+  chromium-5:
