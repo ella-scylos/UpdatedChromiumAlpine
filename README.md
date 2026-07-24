@@ -1,5 +1,7 @@
 # UpdatedChromiumAlpine
 
+****************Archived. Superseded by plain-updated-chromium-alpine************************
+
 Runs **Chromium 148.0.7778.178** inside an Alpine Linux 3.23 Docker container with X11 forwarding, so it displays on your host desktop. A `.desktop` launcher starts the container on demand — nothing runs until you click the icon.
 
 ## Files
